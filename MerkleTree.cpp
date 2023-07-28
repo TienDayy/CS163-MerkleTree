@@ -1,39 +1,26 @@
-#include <functional>
-#include <iostream>
-#include <string>
-#include <vector>
+#include "MerkleTree.h"
 
-using namespace std;
-
-struct Node {
-    string key;
-    Node* left;
-    Node* right;
-};
-
-vector<string> listOfData = {"data1", "data2", "data3", "data4", "data5"};
-Node* root = nullptr;
-int height;
-
-// Tìm chiều cao height sao cho đủ leaves để chứa data
-int getHeight(int numberOfData) {
-    int leaves = 1, h = 0;
+// Find the value of height that provides enough slots for storing data.
+int MerkleTree::getHeight(int numberOfData) {
+    int leaves = 1;
     while (leaves < numberOfData) {
-        h++;
+        height++;
         leaves = leaves * 2;
     }
-    return h;
+    return height;
 }
 
-// Tính toán giá trị băm của một dữ liệu
-string calculate_hash(const string& data) {
-    hash<string> str_hash;
-    return to_string(str_hash(data));
+// Calculate the hash string of data.
+std::string MerkleTree::calculate_hash(const std::string& data) {
+    std::hash<std::string> str_hash;
+    return std::to_string(str_hash(data));
 }
 
-// Xây dựng cây Merkle từ danh sách các giá trị băm
-void build_merkle_tree(int current_height, Node* node) {
-    if (current_height >= height) {
+// Build Merkle Tree based on hash value list.
+void MerkleTree::buildMerkleTreeHelper(
+    Node* node, int curHeight, std::vector<std::string> listOfData
+) {
+    if (curHeight >= height) {
         if (listOfData.size() == 0) {
             node->key = "";
         } else {
@@ -44,34 +31,39 @@ void build_merkle_tree(int current_height, Node* node) {
         node->right = nullptr;
         return;
     }
-    current_height++;
-    node->left = new Node;
-    node->right = new Node;
-    build_merkle_tree(current_height, node->right);
-    build_merkle_tree(current_height, node->left);
+
+    curHeight++;
+    node->left = new Node();
+    node->right = new Node();
+    buildMerkleTreeHelper(node->right, curHeight, listOfData);
+    buildMerkleTreeHelper(node->left, curHeight, listOfData);
     node->key = calculate_hash(node->left->key + node->right->key);
 }
 
-void delete_merkle_tree(Node* root) {
-    if (root == nullptr) return;
-    delete_merkle_tree(root->left);
-    delete_merkle_tree(root->right);
-    delete root;
+void MerkleTree::buildMerkleTree(const std::vector<std::string>& listOfData) {
+    buildMerkleTreeHelper(root, 0, listOfData);
 }
-int main() {
-    // Build
-    height = getHeight(listOfData.size());
-    if (listOfData.size() > 0) {
-        root = new Node;
-        build_merkle_tree(0, root);
-    } else
-        cout << "No data to build";
 
-    // Cout root(hash)
-    cout << root->key << '\n';
+bool MerkleTree::searchInMerkleTreeHelper(Node* node, const std::string& targetData) {
+    if (!node) {
+        return false;
+    }
 
-    // Delete
-    delete_merkle_tree(root);
+    if (node->key == targetData) {
+        return true;
+    }
 
-    return 0;
+    return searchInMerkleTreeHelper(node->left, targetData) ||
+           searchInMerkleTreeHelper(node->right, targetData);
+}
+
+bool MerkleTree::searchInMerkleTree(const std::string& targetData) {
+    return searchInMerkleTreeHelper(root, targetData);
+}
+
+void MerkleTree::deleteMerkleTreeHelper(Node* node) {
+    if (node == nullptr) return;
+    deleteMerkleTreeHelper(node->left);
+    deleteMerkleTreeHelper(node->right);
+    delete node;
 }
