@@ -67,3 +67,45 @@ void MerkleTree::deleteMerkleTreeHelper(Node* node) {
     deleteMerkleTreeHelper(node->right);
     delete node;
 }
+
+// As mentioned earlier, Merkle trees are immutable, so we can't directly update data in
+// a Merkle tree. However, if we need to modify data, we can create a new Merkle tree
+// that reflects the changes, then compare the old root hash with the new root hash to
+// determine the differences. Any nodes whose hashes are different between the old and new
+// trees will represent the changes made.
+
+void MerkleTree::updateMerkleTreeHelper(
+    Node* node, const std::string& targetData, const std::string& newData
+) {
+    if (!node) {
+        return;
+    }
+
+    if (node->key == targetData) {
+        node->key = newData;
+        return;
+    }
+
+    updateMerkleTreeHelper(node->left, targetData, newData);
+    updateMerkleTreeHelper(node->right, targetData, newData);
+}
+
+void MerkleTree::updateMerkleTree(
+    const std::string& targetData, const std::string& newData
+) {
+    updateMerkleTreeHelper(root, targetData, newData);
+}
+
+// Similarly to updating data, direct deletion of data is not possible in a Merkle tree
+// due to its immutable nature. If we need to remove data from the tree, we can create a
+// new Merkle tree that omits the data we want to delete. Like with updating, we can
+// then compare the old root hash with the new root hash to identify the differences.
+// Similarly to updating data, direct deletion of data is not possible in a Merkle tree
+// due to its immutable nature. If we need to remove data from the tree, we can create a
+// new Merkle tree that omits the data we want to delete. Like with updating, we can
+// then compare the old root hash with the new root hash to identify the differences.
+
+void MerkleTree::deleteDataMerkleTree(const std::string& targetData) {
+    std::string newNullData;
+    updateMerkleTreeHelper(root, targetData, newNullData);
+}

@@ -24,10 +24,13 @@ class MerkleTree {
     bool searchInMerkleTreeHelper(Node*, const std::string&);
     void deleteMerkleTreeHelper(Node*);
     void deleteMerkleTree() { deleteMerkleTreeHelper(root); }
+    void updateMerkleTreeHelper(Node*, const std::string&, const std::string&);
 
    public:
     int height;
     int getHeight(int);
     void buildMerkleTree(const std::vector<std::string>&);
     bool searchInMerkleTree(const std::string&);
+    void updateMerkleTree(const std::string&, const std::string&);
+    void deleteDataMerkleTree(const std::string&);
 };
